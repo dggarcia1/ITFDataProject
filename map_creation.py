@@ -3,10 +3,10 @@ from geopy.geocoders import Nominatim
 from time import sleep
 import pandas as pd
 import folium
-from folium.features import DivIcon
 from folium import Element
 import sqlite3
 import webbrowser
+
 
 pd.set_option('display.max_rows', None)
 conn = sqlite3.connect('itf_tournaments.db')
@@ -60,14 +60,20 @@ def get_valid_country():
             FROM tTournaments
     ;""", conn)['country'].tolist()
 
-    country = input("What country would you like to create a map for? ").strip().upper()
+    while True:
+        country_input = input("What country would you like to create a map for? ")
+        country = country_input.strip().upper()
+        try:
+            if country in [c.upper() for c in valid_countries]:
+                print(f"✅ Creating map for {country}...")
+                return country
+            else:
+                # Country not found: ask again
+                print(f"❌ There haven't been any tournaments in {country_input}. Please try again.")
+        except Exception as e:
+            # Catch unexpected errors and prompt again
+            print(f"❌ Error checking the country: {e}. Please try again.")
 
-    if country in [c.upper() for c in valid_countries]:
-        print(f"✅ Creating map for {country}...")
-        return country
-    else:
-        print(f"❌ There haven't been any tournaments in {country}.")
-        return None
 
 
 def create_country_map(coords_df, country, output_file="world_map.html"):
@@ -115,7 +121,6 @@ def create_country_map(coords_df, country, output_file="world_map.html"):
     webbrowser.open(output_file)
     
     return m
-
 
 
 
