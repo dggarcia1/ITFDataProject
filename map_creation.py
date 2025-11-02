@@ -13,6 +13,8 @@ conn = sqlite3.connect('itf_tournaments.db')
 curs = conn.cursor()
 curs.execute("PRAGMA foreign_keys=ON;")
 
+
+
 def clean_city_names(df):
     """
     Cleans and standardizes city and country names, and
@@ -21,7 +23,10 @@ def clean_city_names(df):
 
     # Fix known naming inconsistencies
     df['city'] = df['city'].replace('SHARM ELSHEIKH', 'SHARM EL SHEIKH')
+    df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
+    df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
     df['country'] = df['country'].replace('GREAT BRITAIN', 'UK')
+    df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
 
     # Add comma before state abbreviations (e.g. "Boca Raton FL" → "Boca Raton, FL")
     def format_us_city(city, country):
@@ -32,13 +37,17 @@ def clean_city_names(df):
 
     # Create city-country combined strings for geocoding
     cities = df['city'].dropna().tolist()
-    countries = df['country'].dropna().tolist()
-    city_country = [f"{city}, {country}" for city, country in zip(cities, countries)]
+    cities = [city.strip() for city in cities]
 
+    countries = df['country'].dropna().tolist()
+
+    city_country = [f"{city}, {country}" for city, country in zip(cities, countries)]
     # Remove duplicates while preserving order
     city_country = list(dict.fromkeys(city_country))
-
+    
     return city_country
+
+
 
 def get_valid_country():
     """
@@ -59,6 +68,56 @@ def get_valid_country():
     else:
         print(f"❌ There haven't been any tournaments in {country}.")
         return None
+
+
+def create_country_map(coords_df, country, output_file="world_map.html"):
+    """
+    Creates a folium map centered on the coordinates in coords_df,
+    adds markers for each city, includes a title with the country,
+    saves the map to an HTML file, and opens it in the default browser.
+
+    Parameters:
+        coords_df (pd.DataFrame): DataFrame with 'city', 'latitude', 'longitude' columns.
+        country (str): Name of the country for the map title.
+        output_file (str): File path to save the HTML map.
+    """
+    
+    # Make sure there are valid coordinates
+    bounds = coords_df[['latitude', 'longitude']].dropna().values.tolist()
+    if not bounds:
+        raise ValueError("No valid coordinates found in coords_df.")
+
+    # Compute average lat/lon for initial map center
+    avg_lat = sum(lat for lat, lon in bounds) / len(bounds)
+    avg_lon = sum(lon for lat, lon in bounds) / len(bounds)
+
+    num_points = len(bounds)
+
+    # Initialize the map
+    m = folium.Map(location=[avg_lat, avg_lon], zoom_start=8)
+    if num_points > 1:
+        m.fit_bounds(bounds, padding=(120, 120))
+
+    # Add markers for each city
+    for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
+        folium.Marker(
+            [row['latitude'], row['longitude']],
+            tooltip=row['city']
+        ).add_to(m)
+
+    # Add a title at the top
+    title_html = f"""<h3 align="center" style="font-size:20px"><b>ITF Tournaments in {country}</b></h3>"""
+    m.get_root().html.add_child(Element(title_html))
+
+    # Save and open map
+    m.save(output_file)
+    print(f"✅ Map with title saved as {output_file}")
+    webbrowser.open(output_file)
+    
+    return m
+
+
+
 
 country = get_valid_country()
 
@@ -108,29 +167,5 @@ for city in cities:
     # Delay to respect Nominatim rate limits
     sleep(1.2)
 
-# Convert results to DataFrame
-coords_df = pd.DataFrame(results)
 
-# Create base map
-m = folium.Map(location=[20, 0], zoom_start=5)
-
-# Example markers (your coords_df loop goes here)
-for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
-    folium.Marker(
-        [row['latitude'], row['longitude']],
-        tooltip=row['city']
-    ).add_to(m)
-
-# Automatically adjust map to fit all markers
-bounds = coords_df[['latitude', 'longitude']].dropna().values.tolist()
-m.fit_bounds(bounds)
-
-# Add a title at the top
-title_html = f"""<h3 align="center" style="font-size:20px"><b>ITF Tournaments in {country}</b></h3>"""
-     
-m.get_root().html.add_child(Element(title_html))
-
-# Save map
-m.save("world_map.html")
-print("✅ Map with title saved as world_map.html")
-webbrowser.open("world_map.html")
+create_country_map(pd.DataFrame(results), country)
