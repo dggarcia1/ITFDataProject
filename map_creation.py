@@ -6,6 +6,7 @@ import folium
 from folium import Element
 import sqlite3
 import webbrowser
+from user_checker import get_date
 
 
 pd.set_option('display.max_rows', None)
@@ -27,6 +28,8 @@ def clean_city_names(df):
     df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
     df['country'] = df['country'].replace('GREAT BRITAIN', 'UK')
     df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
+    df['country'] = df['country'].replace('KOREA, REP.', 'SOUTH KOREA')
+    
 
     # Add comma before state abbreviations (e.g. "Boca Raton FL" → "Boca Raton, FL")
     def format_us_city(city, country):
@@ -76,7 +79,7 @@ def get_valid_country():
 
 
 
-def create_country_map(coords_df, country, output_file="world_map.html"):
+def create_country_map(coords_df, output_file="world_map.html"):
     """
     Creates a folium map centered on the coordinates in coords_df,
     adds markers for each city, includes a title with the country,
@@ -111,8 +114,11 @@ def create_country_map(coords_df, country, output_file="world_map.html"):
             tooltip=row['city']
         ).add_to(m)
 
-    # Add a title at the top
-    title_html = f"""<h3 align="center" style="font-size:20px"><b>ITF Tournaments in {country}</b></h3>"""
+    # Change title based on if they chose country or week
+    if choice == "country":
+        title_html = f"""<h3 align="center" style="font-size:20px"><b>ITF Tournaments in {country}</b></h3>"""
+    else:
+        title_html = f"""<h3 align="center" style="font-size:20px"><b>ITF Tournaments in the week starting {week}</b></h3>"""
     m.get_root().html.add_child(Element(title_html))
 
     # Save and open map
@@ -123,14 +129,22 @@ def create_country_map(coords_df, country, output_file="world_map.html"):
     return m
 
 
+choice = input("Do you want to create the map based on country or week? (country/week): ").strip().lower()
 
-country = get_valid_country()
-
-initialq = pd.read_sql("""
+if choice == "country":
+    country = get_valid_country()
+    initialq = pd.read_sql("""
         SELECT *
         FROM tTournaments
-        WHERE country == ?
-;""", conn, params=(country,))
+        WHERE country = ?
+    ;""", conn, params=(country,))
+else:
+    week = get_date()
+    initialq = pd.read_sql("""
+        SELECT *
+        FROM tTournaments
+        WHERE date_started = ?
+    ;""", conn, params=(week,))
 
 city_country = clean_city_names(initialq)
 
@@ -173,4 +187,4 @@ for city in cities:
     sleep(1.2)
 
 
-create_country_map(pd.DataFrame(results), country)
+create_country_map(pd.DataFrame(results))

@@ -38,14 +38,29 @@ def get_user_ranking():
 
 # Asking user for date input and validating it
 def get_date():
-    """Ask the user for a date in 'DD Mon YYYY' format (e.g., '03 Sep 2025') and validate it."""
+    """Ask the user for a date in 'DD Mon YYYY' format (e.g., '03 Sep 2025'),
+    validate it, and ensure tournaments exist for that date."""
     while True:
         date_input = input("Enter the tournament start date (e.g., 03 Sep 2025): ").strip()
         try:
-            # Parse with day, abbreviated month name, and year
+            # Validate date format
             valid_date = datetime.strptime(date_input, "%d %b %Y")
-            # Return formatted date string to match your DB format
-            return valid_date.strftime("%d %b %Y")
+            formatted_date = valid_date.strftime("%d %b %Y")
+
+            # Check if there are tournaments for that date
+            results = pd.read_sql("""
+                SELECT *
+                FROM tTournaments
+                WHERE date_started = ?
+            ;""", conn, params=(formatted_date,))
+
+            if results.empty:
+                print(f"No tournaments found starting on {formatted_date}. Please try another date.")
+                continue  # Ask again
+
+            # If results exist, return both the formatted date and the results if you need them
+            return formatted_date
+
         except ValueError:
             print("Invalid format. Please enter the date as 'DD Mon YYYY' (e.g., 03 Sep 2025).")
 
