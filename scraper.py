@@ -384,23 +384,19 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m25-lajeado/bra/2025/m-itf-bra-2025-005/",
-                "https://www.itftennis.com/en/tournament/m25-harlingen-tx/usa/2025/m-itf-usa-2025-037/",
-                "https://www.itftennis.com/en/tournament/m25-brisbane/aus/2025/m-itf-aus-2025-012/",
-                "https://www.itftennis.com/en/tournament/m25-glasgow-/gbr/2025/m-itf-gbr-2025-011/",
-                "https://www.itftennis.com/en/tournament/m25-qian-daohu/chn/2025/m-itf-chn-2025-029/",
-                "https://www.itftennis.com/en/tournament/m25-sintra/por/2025/m-itf-por-2025-016/",
-                "https://www.itftennis.com/en/tournament/m15-ibague/col/2025/m-itf-col-2025-005/",
-                "https://www.itftennis.com/en/tournament/m15-bol/cro/2025/m-itf-cro-2025-009/",
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-050/",
-                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-020/",
-                "https://www.itftennis.com/en/tournament/m15-heraklion/gre/2025/m-itf-gre-2025-015/",
-                "https://www.itftennis.com/en/tournament/m15-yanagawa-city/jpn/2025/m-itf-jpn-2025-017/",
-                "https://www.itftennis.com/en/tournament/m15-trois-rivieres/can/2025/m-itf-can-2025-004/",
-                "https://www.itftennis.com/en/tournament/m15-hua-hin/tha/2025/m-itf-tha-2025-011/",
-                "https://www.itftennis.com/en/tournament/m15-selva-gardena/ita/2025/m-itf-ita-2025-028/",
-                "https://www.itftennis.com/en/tournament/m15-malta/mlt/2025/m-itf-mlt-2025-002/",
-                "https://www.itftennis.com/en/tournament/m15-szabolcsveresmart/hun/2025/m-itf-hun-2025-007/" 
+                "https://www.itftennis.com/en/tournament/m25-santa-cruz-do-sul/bra/2025/m-itf-bra-2025-009/",
+                "https://www.itftennis.com/en/tournament/m25-east-lansing-mi/usa/2025/m-itf-usa-2025-035/",
+                "https://www.itftennis.com/en/tournament/m25-montreal/can/2025/m-itf-can-2025-006/",
+                "https://www.itftennis.com/en/tournament/m25-valencia/esp/2025/m-itf-esp-2025-049/",
+                "https://www.itftennis.com/en/tournament/m25-guadalajara/mex/2025/m-itf-mex-2025-009/",
+                "https://www.itftennis.com/en/tournament/m25-monastir/tun/2025/m-itf-tun-2025-051/",
+                "https://www.itftennis.com/en/tournament/m15-valledupar/col/2025/m-itf-col-2025-002/",
+                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-021/",
+                "https://www.itftennis.com/en/tournament/m15-heraklion/gre/2025/m-itf-gre-2025-016/",
+                "https://www.itftennis.com/en/tournament/m15-antalya/tur/2025/m-itf-tur-2025-037/",
+                "https://www.itftennis.com/en/tournament/m15-orlando-fl/usa/2025/m-itf-usa-2025-038/",
+                "https://www.itftennis.com/en/tournament/m15-san-gregorio-di-catania/ita/2025/m-itf-ita-2025-029/",
+                "https://www.itftennis.com/en/tournament/m15-manama/brn/2025/m-itf-brn-2025-001/"
                   
                 ]
     itf_scraper(websites)
