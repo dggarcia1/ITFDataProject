@@ -26,6 +26,7 @@ def clean_city_names(df):
     df['city'] = df['city'].replace('SHARM ELSHEIKH', 'SHARM EL SHEIKH')
     df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
     df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
+    df['city'] = df['city'].replace(r'\s*\(.*?\)', '', regex=True)
     df['country'] = df['country'].replace('GREAT BRITAIN', 'UK')
     df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
     df['country'] = df['country'].replace('KOREA, REP.', 'SOUTH KOREA')
@@ -129,62 +130,118 @@ def create_country_map(coords_df, output_file="world_map.html"):
     return m
 
 
-choice = input("Do you want to create the map based on country or week? (country/week): ").strip().lower()
+def get_city_coordinates(city_country_list, delay=1.2):
+    """
+    Given a list like ["Paris, France", "Tokyo, Japan"],
+    fetch latitude and longitude for each using Nominatim (OpenStreetMap).
 
-if choice == "country":
-    country = get_valid_country()
-    initialq = pd.read_sql("""
-        SELECT *
-        FROM tTournaments
-        WHERE country = ?
-    ;""", conn, params=(country,))
-else:
-    week = get_date()
-    initialq = pd.read_sql("""
-        SELECT *
-        FROM tTournaments
-        WHERE date_started = ?
-    ;""", conn, params=(week,))
+    Returns columns: ['city', 'country', 'latitude', 'longitude']
+    """
+    geolocator = Nominatim(user_agent="city_to_coordinates_converter", timeout=10)
+    results = []
 
-city_country = clean_city_names(initialq)
+    for city_country in city_country_list:
+        try:
+            # Split "City, Country" into two parts
+            parts = [x.strip() for x in city_country.rsplit(",", 1)]
+            city = parts[0]
+            print(city)
+            country = parts[1] if len(parts) > 1 else None
+            print(country)
 
-# Initialize the geolocator
-geolocator = Nominatim(user_agent="city_to_coordinates_converter", timeout=10)
-
-# List of cities (e.g. city_country = ["Paris, France", "Tokyo, Japan"])
-cities = city_country
-
-# Empty list to collect results
-results = []
-
-# Loop through each city and get coordinates
-for city in cities:
-    try:
-        location = geolocator.geocode(city)
-        if location:
-            print(f"{city}: {location.latitude}, {location.longitude}")
+            location = geolocator.geocode(city_country)
+            if location:
+                print(f"{city_country}: {location.latitude}, {location.longitude}")
+                results.append({
+                    'city': city,
+                    'country': country,
+                    'latitude': location.latitude,
+                    'longitude': location.longitude
+                })
+            else:
+                print(f"Could not find coordinates for {city_country}.")
+                results.append({
+                    'city': city,
+                    'country': country,
+                    'latitude': None,
+                    'longitude': None
+                })
+        except Exception as e:
+            print(f"Error processing {city_country}: {e}")
             results.append({
                 'city': city,
-                'latitude': location.latitude,
-                'longitude': location.longitude
-            })
-        else:
-            print(f"Could not find coordinates for {city}.")
-            results.append({
-                'city': city,
+                'country': country,
                 'latitude': None,
                 'longitude': None
             })
-    except Exception as e:
-        print(f"Error processing {city}: {e}")
-        results.append({
-            'city': city,
-            'latitude': None,
-            'longitude': None
-        })
-    
+
+        sleep(delay)
+
+    return pd.DataFrame(results)
+
+
+if __name__ == "__main__":
+    choice = input("Do you want to create the map based on country or week? (country/week): ").strip().lower()
+
+    if choice == "country":
+        country = get_valid_country()
+        initialq = pd.read_sql("""
+            SELECT *
+            FROM tTournaments
+            WHERE country = ?
+        ;""", conn, params=(country,))
+    else:
+        week = get_date()
+        initialq = pd.read_sql("""
+            SELECT *
+            FROM tTournaments
+            WHERE date_started = ?
+        ;""", conn, params=(week,))
+
+    city_country = clean_city_names(initialq)
+
+    results = get_city_coordinates(city_country)
+
+    create_country_map(results)
+
+# Initialize the geolocator
+#geolocator = Nominatim(user_agent="city_to_coordinates_converter", timeout=10)
+
+# List of cities (e.g. city_country = ["Paris, France", "Tokyo, Japan"])
+#cities = city_country
+
+# Empty list to collect results
+#results = []
+
+# Loop through each city and get coordinates
+#for city in cities:
+#    try:
+#        location = geolocator.geocode(city)
+#        if location:
+#            print(f"{city}: {location.latitude}, {location.longitude}")
+#            results.append({
+#                'city': city,
+#                'latitude': location.latitude,
+#                'longitude': location.longitude
+#            })
+#        else:
+#            print(f"Could not find coordinates for {city}.")
+#            results.append({
+#                'city': city,
+#                'latitude': None,
+#                'longitude': None
+#            })
+#    except Exception as e:
+#        print(f"Error processing {city}: {e}")
+#      results.append({
+#            'city': city,
+#            'latitude': None,
+#            'longitude': None
+#        })
+#    
     # Delay to respect Nominatim rate limits
-    sleep(1.2)
+#    sleep(1.2)
 
 
-create_country_map(pd.DataFrame(results))
+#create_country_map(pd.DataFrame(results))
+
