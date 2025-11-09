@@ -75,6 +75,10 @@ def get_or_create_location_id(conn, city, country, lat=None, lon=None):
     Returns the location_id for (city, country). 
     If it doesn’t exist, inserts it and returns the new id.
     """
+
+    city = city.strip()
+    country = country.strip()   
+
     # 1️⃣ Check if location already exists
     result = conn.execute("""
         SELECT location_id
@@ -175,7 +179,7 @@ def itf_scraper(websites):
         
         
         countries = driver.find_elements(By.XPATH, "//span[contains(@class, 'drawsheet-widget__nationality')]")
-        country_names = [country.text for country in countries]
+        country_names = [country.text.strip() for country in countries]
 
         seen = set()
         full_names = [f"{first} {last}" for first, last in zip(player_first, player_last)
@@ -417,8 +421,8 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m15-las-palmas-de-gran-canaria/esp/2025/m-itf-esp-2025-040/"
+                "https://www.itftennis.com/en/tournament/m25-manama-/brn/2025/m-itf-brn-2025-002/"
             
-                  
+                
                 ]
     itf_scraper(websites)
