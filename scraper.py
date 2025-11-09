@@ -43,9 +43,9 @@ def insert_tournament(conn, tournament_data):
     query = """
     INSERT OR IGNORE INTO tTournaments (
         tournament_key, city, country, points, prize_money,
-        date_started, date_ended, qualysize, qualybyes, surface, in_out
+        date_started, date_ended, qualysize, qualybyes, surface, in_out, location_id
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """
     
     curs.execute(query, tournament_data)
@@ -69,6 +69,36 @@ def insert_players(conn, df):
         curs.execute(query, row)
     conn.commit()
     curs.close()
+
+def get_or_create_location_id(conn, city, country, lat=None, lon=None):
+    """
+    Returns the location_id for (city, country). 
+    If it doesn’t exist, inserts it and returns the new id.
+    """
+    # 1️⃣ Check if location already exists
+    result = conn.execute("""
+        SELECT location_id
+        FROM tLocations
+        WHERE city = ? AND country = ?;
+    """, (city, country)).fetchone()
+
+    if result:
+        return result[0]  # reuse existing id
+
+    # 2️⃣ If not found, compute next location_id manually
+    max_id = conn.execute("SELECT MAX(location_id) FROM tLocations;").fetchone()[0]
+    new_id = (max_id or 0) + 1
+
+    # 3️⃣ Insert new location record
+    conn.execute("""
+        INSERT INTO tLocations (location_id, city, country, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?);
+    """, (new_id, city, country, lat, lon))
+    conn.commit()
+
+    print(f"✅ Added new location {city}, {country} with ID {new_id}")
+    return new_id
+
 
 conn = sqlite3.connect('itf_tournaments.db')
 curs = conn.cursor()
@@ -178,8 +208,11 @@ def itf_scraper(websites):
         else:
             in_out = 'Indoor'
         
+        # Check if tournament city, country already exists elswhere, if so use that location_id, if not then increment one above the highest existing one
+        location_id = get_or_create_location_id(conn, city, host_country)
+
         tournament_data = (tourney_key, city, host_country, points, prize_money, 
-                           date_started, date_ended, qualy_size, byes, surface, in_out)
+                           date_started, date_ended, qualy_size, byes, surface, in_out, location_id)
         
 
         designation_list = []
@@ -384,19 +417,8 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m25-santa-cruz-do-sul/bra/2025/m-itf-bra-2025-009/",
-                "https://www.itftennis.com/en/tournament/m25-east-lansing-mi/usa/2025/m-itf-usa-2025-035/",
-                "https://www.itftennis.com/en/tournament/m25-montreal/can/2025/m-itf-can-2025-006/",
-                "https://www.itftennis.com/en/tournament/m25-valencia/esp/2025/m-itf-esp-2025-049/",
-                "https://www.itftennis.com/en/tournament/m25-guadalajara/mex/2025/m-itf-mex-2025-009/",
-                "https://www.itftennis.com/en/tournament/m25-monastir/tun/2025/m-itf-tun-2025-051/",
-                "https://www.itftennis.com/en/tournament/m15-valledupar/col/2025/m-itf-col-2025-002/",
-                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-021/",
-                "https://www.itftennis.com/en/tournament/m15-heraklion/gre/2025/m-itf-gre-2025-016/",
-                "https://www.itftennis.com/en/tournament/m15-antalya/tur/2025/m-itf-tur-2025-037/",
-                "https://www.itftennis.com/en/tournament/m15-orlando-fl/usa/2025/m-itf-usa-2025-038/",
-                "https://www.itftennis.com/en/tournament/m15-san-gregorio-di-catania/ita/2025/m-itf-ita-2025-029/",
-                "https://www.itftennis.com/en/tournament/m15-manama/brn/2025/m-itf-brn-2025-001/"
+                "https://www.itftennis.com/en/tournament/m15-las-palmas-de-gran-canaria/esp/2025/m-itf-esp-2025-040/"
+            
                   
                 ]
     itf_scraper(websites)
