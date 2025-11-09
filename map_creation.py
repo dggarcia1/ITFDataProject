@@ -26,6 +26,9 @@ def clean_city_names(df):
     df['city'] = df['city'].replace('SHARM ELSHEIKH', 'SHARM EL SHEIKH')
     df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
     df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
+    df['city'] = df['city'].replace("BAGNOLES DE LORNE', 'BAGNOLES DE L'ORNE")
+    df['city'] = df['city'].replace("CAP DAGDE', 'CAP D'AGDE")
+
     df['city'] = df['city'].replace(r'\s*\(.*?\)', '', regex=True)
     df['country'] = df['country'].replace('GREAT BRITAIN', 'UK')
     df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
@@ -50,6 +53,52 @@ def clean_city_names(df):
     city_country = list(dict.fromkeys(city_country))
     
     return city_country
+
+def clean_city_names_df(df):
+    """
+    Cleans and standardizes city and country names while preserving
+    the original values for accurate database matching later.
+
+    Returns a DataFrame with:
+    ['original_city', 'original_country', 'clean_city', 'clean_country']
+    """
+
+    df = df.copy()  # avoid modifying the original DataFrame
+
+    # Preserve originals
+    df['original_city'] = df['city']
+    df['original_country'] = df['country']
+
+    # --- Fix known naming inconsistencies ---
+    df['city'] = df['city'].replace('SHARM ELSHEIKH', 'SHARM EL SHEIKH')
+    df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
+    df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
+    df['city'] = df['city'].replace("BAGNOLES DE LORNE", "BAGNOLES DE L'ORNE")
+    df['city'] = df['city'].replace("CAP DAGDE", "CAP D'AGDE")
+
+
+    df['city'] = df['city'].replace(r'\s*\(.*?\)', '', regex=True)
+
+    df['country'] = df['country'].replace('GREAT BRITAIN', 'UK')
+    df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
+    df['country'] = df['country'].replace('KOREA, REP.', 'SOUTH KOREA')
+
+    # --- US-specific formatting ---
+    def format_us_city(city, country):
+        if country == 'USA' and isinstance(city, str) and len(city) >= 3 and city[-3] == ' ':
+            return city[:-3] + ',' + city[-3:]
+        return city
+
+    df['city'] = df.apply(lambda row: format_us_city(row['city'], row['country']), axis=1)
+
+    # --- Final cleaning ---
+    df['clean_city'] = df['city'].str.strip()
+    df['clean_country'] = df['country'].str.strip()
+
+    # Drop duplicates so we only geocode unique clean pairs
+    df_unique = df[['original_city', 'original_country', 'clean_city', 'clean_country']].drop_duplicates().reset_index(drop=True)
+
+    return df_unique
 
 
 
@@ -145,9 +194,7 @@ def get_city_coordinates(city_country_list, delay=1.2):
             # Split "City, Country" into two parts
             parts = [x.strip() for x in city_country.rsplit(",", 1)]
             city = parts[0]
-            print(city)
             country = parts[1] if len(parts) > 1 else None
-            print(country)
 
             location = geolocator.geocode(city_country)
             if location:
