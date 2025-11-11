@@ -421,7 +421,7 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m25-manama-/brn/2025/m-itf-brn-2025-002/"
+                # Nov 10 Tournaments
             
                 
                 ]
