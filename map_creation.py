@@ -140,7 +140,28 @@ def create_country_map(coords_df, output_file="world_map.html"):
         country (str): Name of the country for the map title.
         output_file (str): File path to save the HTML map.
     """
-    
+    # Join tLocations with coords_df on city and country to get lat/lon
+    coords_df.to_sql("temp_cleaned_cities", conn, if_exists="replace", index=False)
+
+    # Perform the SQL join
+    query = """
+    SELECT 
+        c.clean_city AS city,
+        c.clean_country AS country,
+        t.latitude,
+        t.longitude
+    FROM temp_cleaned_cities AS c
+    LEFT JOIN tLocations AS t
+        ON UPPER(c.original_city) = UPPER(t.city)
+        AND UPPER(c.original_country) = UPPER(t.country);
+    """
+
+    # Read results back into pandas
+    coords_df = pd.read_sql(query, conn)
+
+    # Drop temp table if not needed anymore
+    conn.execute("DROP TABLE IF EXISTS temp_cleaned_cities;")
+
     # Make sure there are valid coordinates
     bounds = coords_df[['latitude', 'longitude']].dropna().values.tolist()
     if not bounds:
@@ -154,7 +175,7 @@ def create_country_map(coords_df, output_file="world_map.html"):
 
     # Initialize the map
     m = folium.Map(location=[avg_lat, avg_lon], zoom_start=8)
-    if num_points > 1:
+    if num_points > 2:
         m.fit_bounds(bounds, padding=(120, 120))
 
     # Add markers for each city
@@ -245,50 +266,6 @@ if __name__ == "__main__":
             WHERE date_started = ?
         ;""", conn, params=(week,))
 
-    city_country = clean_city_names(initialq)
+    city_country_df = clean_city_names_df(initialq)
 
-    results = get_city_coordinates(city_country)
-
-    create_country_map(results)
-
-# Initialize the geolocator
-#geolocator = Nominatim(user_agent="city_to_coordinates_converter", timeout=10)
-
-# List of cities (e.g. city_country = ["Paris, France", "Tokyo, Japan"])
-#cities = city_country
-
-# Empty list to collect results
-#results = []
-
-# Loop through each city and get coordinates
-#for city in cities:
-#    try:
-#        location = geolocator.geocode(city)
-#        if location:
-#            print(f"{city}: {location.latitude}, {location.longitude}")
-#            results.append({
-#                'city': city,
-#                'latitude': location.latitude,
-#                'longitude': location.longitude
-#            })
-#        else:
-#            print(f"Could not find coordinates for {city}.")
-#            results.append({
-#                'city': city,
-#                'latitude': None,
-#                'longitude': None
-#            })
-#    except Exception as e:
-#        print(f"Error processing {city}: {e}")
-#      results.append({
-#            'city': city,
-#            'latitude': None,
-#            'longitude': None
-#        })
-#    
-    # Delay to respect Nominatim rate limits
-#    sleep(1.2)
-
-
-#create_country_map(pd.DataFrame(results))
-
+    create_country_map(city_country_df)
