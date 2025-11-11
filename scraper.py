@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
+import map_creation
 
 #from webdriver_manager.chrome import ChromeDriverManager
 
@@ -372,8 +373,6 @@ def itf_scraper(websites):
         insert_players(conn, df_to_players)
         print(f'Succesfully added players to database from {tourney_key}\n')
 
-        
-
         print(f'Tournament: {formatted_name} - {date}')
         print(f'Qualifying draw size: {qualy_size}')
         print(f'Number of byes: {byes} \n')
@@ -411,6 +410,8 @@ def itf_scraper(websites):
         
     conn.close()
     driver.quit()
+
+    map_creation.insert_new_locs()
 
     return print("Scraping complete")
 

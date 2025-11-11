@@ -248,6 +248,71 @@ def get_city_coordinates(city_country_list, delay=1.2):
     return pd.DataFrame(results)
 
 
+def insert_new_locs():
+    missing_coords = pd.read_sql("""
+    SELECT *
+    FROM tLocations
+    WHERE (latitude IS NULL OR longitude IS NULL);
+    """, conn)
+
+    # ✅ Handle case where there are no missing coordinates
+    if missing_coords.empty:
+        print("✅ All locations already have coordinates! Nothing to update.")
+    else:
+        # Step 2: Clean names — now keeps both clean and original names
+        try:
+            city_map = clean_city_names_df(missing_coords)
+        except Exception as e:
+            print(f"❌ Error cleaning city names: {e}")
+            raise
+
+        if city_map.empty:
+            print("✅ All cleaned locations already have coordinates!")
+        else:
+            print(f"🗺️ Found {len(city_map)} locations missing coordinates.")
+            
+            try:
+                # Step 3: Fetch coordinates using the cleaned city+country
+                coords_df = get_city_coordinates(
+                    [f"{row.clean_city}, {row.clean_country}" for _, row in city_map.iterrows()]
+                )
+            except Exception as e:
+                print(f"❌ Error fetching coordinates: {e}")
+                raise
+
+            # Step 4: Merge coordinates back with original names
+            merged = city_map.merge(
+                coords_df,
+                left_on=["clean_city", "clean_country"],
+                right_on=["city", "country"],
+                how="left"
+            )
+
+            # Step 5: Update the database using the ORIGINAL city+country
+            updated_count = 0
+            skipped_count = 0
+
+            for _, row in merged.iterrows():
+                if pd.notnull(row["latitude"]) and pd.notnull(row["longitude"]):
+                    conn.execute("""
+                        UPDATE tLocations
+                        SET latitude = ?, longitude = ?
+                        WHERE city = ? AND country = ?;
+                    """, (
+                        row["latitude"],
+                        row["longitude"],
+                        row["original_city"],
+                        row["original_country"]
+                    ))
+                    print(f"✅ Updated: {row['original_city']}, {row['original_country']}")
+                    updated_count += 1
+                else:
+                    print(f"⚠️ Skipped: {row['original_city']}, {row['original_country']} (no coordinates found)")
+                    skipped_count += 1
+
+            conn.commit()
+            print(f"🎯 Done! {updated_count} updated, {skipped_count} skipped.")
+
 if __name__ == "__main__":
     choice = input("Do you want to create the map based on country or week? (country/week): ").strip().lower()
 
