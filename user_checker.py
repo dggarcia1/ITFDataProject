@@ -38,10 +38,10 @@ def get_user_ranking():
 
 # Asking user for date input and validating it
 def get_date():
-    """Ask the user for a date in 'DD Mon YYYY' format (e.g., '03 Sep 2025'),
+    """Ask the user for a date in 'DD Mon YYYY' format (e.g., '01 Sep 2025'),
     validate it, and ensure tournaments exist for that date."""
     while True:
-        date_input = input("Enter the tournament start date (e.g., 03 Sep 2025): ").strip()
+        date_input = input("Enter the tournament start date (e.g., 01 Sep 2025): ").strip()
         try:
             # Validate date format
             valid_date = datetime.strptime(date_input, "%d %b %Y")

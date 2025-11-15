@@ -35,7 +35,7 @@ def clean_city_names(df):
     df['country'] = df['country'].replace('KOREA, REP.', 'SOUTH KOREA')
     
 
-    # Add comma before state abbreviations (e.g. "Boca Raton FL" → "Boca Raton, FL")
+    # Add comma before state abbreviations (e.g. "Boca Raton FL" to "Boca Raton, FL")
     def format_us_city(city, country):
         if country == 'USA' and isinstance(city, str) and len(city) >= 3 and city[-3] == ' ':
             return city[:-3] + ',' + city[-3:]
@@ -63,13 +63,13 @@ def clean_city_names_df(df):
     ['original_city', 'original_country', 'clean_city', 'clean_country']
     """
 
-    df = df.copy()  # avoid modifying the original DataFrame
+    df = df.copy()  # avoid modifying original
 
     # Preserve originals
     df['original_city'] = df['city']
     df['original_country'] = df['country']
 
-    # --- Fix known naming inconsistencies ---
+    # Fix known naming inconsistencies
     df['city'] = df['city'].replace('SHARM ELSHEIKH', 'SHARM EL SHEIKH')
     df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
     df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
@@ -83,7 +83,7 @@ def clean_city_names_df(df):
     df['country'] = df['country'].replace('CHINA, P.R.', 'CHINA')
     df['country'] = df['country'].replace('KOREA, REP.', 'SOUTH KOREA')
 
-    # --- US-specific formatting ---
+    # US specific formatting
     def format_us_city(city, country):
         if country == 'USA' and isinstance(city, str) and len(city) >= 3 and city[-3] == ' ':
             return city[:-3] + ',' + city[-3:]
@@ -91,7 +91,6 @@ def clean_city_names_df(df):
 
     df['city'] = df.apply(lambda row: format_us_city(row['city'], row['country']), axis=1)
 
-    # --- Final cleaning ---
     df['clean_city'] = df['city'].str.strip()
     df['clean_country'] = df['country'].str.strip()
 
@@ -255,7 +254,7 @@ def insert_new_locs():
     WHERE (latitude IS NULL OR longitude IS NULL);
     """, conn)
 
-    # ✅ Handle case where there are no missing coordinates
+    # Handle case where there are no missing coordinates
     if missing_coords.empty:
         print("✅ All locations already have coordinates! Nothing to update.")
     else:
