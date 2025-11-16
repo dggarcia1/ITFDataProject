@@ -66,7 +66,7 @@ def get_date():
 
 
 # Getting last player accepted in each tournament (for given week)
-def get_last_accepted_players(tournament_date):
+def get_last_accepted_players(tournament_date, conn=conn):
     df = pd.read_sql("""
                         WITH NonByes AS (
                         SELECT tournament_key

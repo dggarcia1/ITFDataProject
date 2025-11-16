@@ -383,7 +383,10 @@ def itf_scraper(websites):
 
         player_name = last_direct_acc['PLAYER']
         alternate_num = alternate_al.loc[alternate_al['PLAYER'] == player_name].index
-        print(f'He was alternate number {alternate_num[0]+1}/{alternate_al.shape[0]}\n')
+        if alternate_num.empty:
+            print(f'No alternates played. Alternate list was length {alternate_al.shape[0]}\n')
+        else:
+            print(f'He was alternate number {alternate_num[0]+1}/{alternate_al.shape[0]}\n')
 
        # last_alts =  acceptance_summary[(acceptance_summary['DESIGNATION'] != '(WC)') & (acceptance_summary.isna().any(axis=1))]
        # num_last_alts = last_alts.shape[0]
@@ -419,7 +422,11 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m25-manama-/brn/2025/m-itf-brn-2025-002/"
+                "https://www.itftennis.com/en/tournament/m15-gimcheon/kor/2025/m-itf-kor-2025-004/",
+                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-053/",
+                "https://www.itftennis.com/en/tournament/m15-bhubaneswar/ind/2025/m-itf-ind-2025-009/",
+                "https://www.itftennis.com/en/tournament/m15-kuala-lumpur/mas/2025/m-itf-mas-2025-003/",
+                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-022/"
             
                 
                 ]

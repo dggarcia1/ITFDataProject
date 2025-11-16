@@ -179,9 +179,24 @@ def create_country_map(coords_df, output_file="world_map.html"):
 
     # Add markers for each city
     for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
+        tooltip_html = f"""
+        <b>{row['city']}</b><br>
+        {row['country']}
+        """
+
+        # Detailed info (click)
+        popup_html = f"""
+        <b>{row['city']}, {row['country']}</b><br><br>
+        Latitude: {row['latitude']}<br>
+        Longitude: {row['longitude']}<br>
+        Population: {row.get('population', 'N/A')}<br>
+        Some other field: {row.get('some_field', 'N/A')}
+        """
+
         folium.Marker(
             [row['latitude'], row['longitude']],
-            tooltip=row['city']
+            tooltip=folium.Tooltip(tooltip_html, sticky=True),
+            popup=folium.Popup(popup_html, max_width=300)
         ).add_to(m)
 
     # Change title based on if they chose country or week
