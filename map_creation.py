@@ -201,10 +201,6 @@ def create_country_map(coords_df, output_file="world_map.html"):
         last_player = get_last_accepted_players(week, conn)
         for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
 
-            tooltip_html = f"""
-            <b>{row['city']}</b><br>
-            {row['country']}
-            """
             # Query database for additional info about the tournament in that city/country for that week
             popup_info = pd.read_sql("""
                 SELECT tournament_key, qualysize, qualybyes
@@ -223,17 +219,16 @@ def create_country_map(coords_df, output_file="world_map.html"):
                 last_accepted_name = last_accepted['player_name'].iloc[0]
                 last_accepted_name = f"{last_accepted['player_name'].iloc[0]} : {last_accepted['rank_type'].iloc[0]} {last_accepted['rank_value'].iloc[0]}"
             # Detailed info (click)
-            popup_html = f"""
-            <b>{row['city']}, {row['country']}</b><br><br>
-            Qualifying Size: {popup_info['qualysize'].iloc[0]} <br>
+            tooltip_html = f"""
+            <b>{row['city']}, {row['country']}</b><br>
+            Qualifying Size: {popup_info['qualysize'].iloc[0]}<br>
             Byes: {popup_info['qualybyes'].iloc[0]}<br>
-            Last Accepted Player: {f'{last_accepted_name}'}
+            Last Accepted Player: {last_accepted_name}
             """
 
             folium.Marker(
                 [row['latitude'], row['longitude']],
-                tooltip=folium.Tooltip(tooltip_html, sticky=True),
-                popup=folium.Popup(popup_html, max_width=300)
+                tooltip=folium.Tooltip(tooltip_html, sticky=True)
             ).add_to(m)
 
     # Change title based on if they chose country or week
