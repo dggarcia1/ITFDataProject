@@ -422,11 +422,7 @@ def itf_scraper(websites):
 
 if __name__ == "__main__":
     websites = [
-                "https://www.itftennis.com/en/tournament/m15-gimcheon/kor/2025/m-itf-kor-2025-004/",
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-053/",
-                "https://www.itftennis.com/en/tournament/m15-bhubaneswar/ind/2025/m-itf-ind-2025-009/",
-                "https://www.itftennis.com/en/tournament/m15-kuala-lumpur/mas/2025/m-itf-mas-2025-003/",
-                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-022/"
+                "https://www.itftennis.com/en/tournament/m15-alcala-de-henares/esp/2025/m-itf-esp-2025-051/"
             
                 
                 ]

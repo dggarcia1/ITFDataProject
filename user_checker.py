@@ -85,7 +85,7 @@ def get_last_accepted_players(tournament_date, conn=conn):
                             WHERE tournament_key IN (SELECT tournament_key FROM NonByes)
                             AND (designation = 'DA' OR designation = '(A)')
                         )
-                        SELECT rank_type, rank_value, tournament_key
+                        SELECT player_name, rank_type, rank_value, tournament_key
                         FROM RankedPlayers
                         WHERE row_num = 1
                         ORDER BY rank_type DESC, rank_value DESC

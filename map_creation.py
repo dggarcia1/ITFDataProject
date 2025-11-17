@@ -6,7 +6,7 @@ import folium
 from folium import Element
 import sqlite3
 import webbrowser
-from user_checker import get_date
+from user_checker import get_date, get_last_accepted_players
 
 
 pd.set_option('display.max_rows', None)
@@ -136,7 +136,6 @@ def create_country_map(coords_df, output_file="world_map.html"):
 
     Parameters:
         coords_df (pd.DataFrame): DataFrame with 'city', 'latitude', 'longitude' columns.
-        country (str): Name of the country for the map title.
         output_file (str): File path to save the HTML map.
     """
     # Join tLocations with coords_df on city and country to get lat/lon
@@ -147,6 +146,8 @@ def create_country_map(coords_df, output_file="world_map.html"):
     SELECT 
         c.clean_city AS city,
         c.clean_country AS country,
+        c.original_city AS og_city,
+        c.original_country AS og_country,
         t.latitude,
         t.longitude
     FROM temp_cleaned_cities AS c
@@ -154,7 +155,6 @@ def create_country_map(coords_df, output_file="world_map.html"):
         ON UPPER(c.original_city) = UPPER(t.city)
         AND UPPER(c.original_country) = UPPER(t.country);
     """
-
     # Read results back into pandas
     coords_df = pd.read_sql(query, conn)
 
@@ -178,26 +178,63 @@ def create_country_map(coords_df, output_file="world_map.html"):
         m.fit_bounds(bounds, padding=(120, 120))
 
     # Add markers for each city
-    for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
-        tooltip_html = f"""
-        <b>{row['city']}</b><br>
-        {row['country']}
-        """
 
-        # Detailed info (click)
-        popup_html = f"""
-        <b>{row['city']}, {row['country']}</b><br><br>
-        Latitude: {row['latitude']}<br>
-        Longitude: {row['longitude']}<br>
-        Population: {row.get('population', 'N/A')}<br>
-        Some other field: {row.get('some_field', 'N/A')}
-        """
+    if choice == "country":
+        for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
+            # Count all the instances of og city, country pairs that exist in the database
+            count_result = pd.read_sql("""
+                SELECT COUNT(*) as tournament_count
+                FROM tTournaments
+                WHERE UPPER(city) = UPPER(?)
+                AND UPPER(country) = UPPER(?);
+            """, conn, params=(row['og_city'], row['og_country']))
+            tooltip_html = f"""
+            <b>{row['city']}</b><br>
+            {row['country']}</b><br>
+            Number of Tournaments: {count_result['tournament_count'].iloc[0]}
+            """
+            folium.Marker(
+                [row['latitude'], row['longitude']],
+                tooltip=folium.Tooltip(tooltip_html, sticky=True),
+            ).add_to(m)
+    else:
+        last_player = get_last_accepted_players(week, conn)
+        for _, row in coords_df.dropna(subset=['latitude', 'longitude']).iterrows():
 
-        folium.Marker(
-            [row['latitude'], row['longitude']],
-            tooltip=folium.Tooltip(tooltip_html, sticky=True),
-            popup=folium.Popup(popup_html, max_width=300)
-        ).add_to(m)
+            tooltip_html = f"""
+            <b>{row['city']}</b><br>
+            {row['country']}
+            """
+            # Query database for additional info about the tournament in that city/country for that week
+            popup_info = pd.read_sql("""
+                SELECT tournament_key, qualysize, qualybyes
+                FROM tTournaments
+                WHERE UPPER(city) = UPPER(?)
+                AND UPPER(country) = UPPER(?)
+                AND date_started = ?;
+            """, conn, params=(row['og_city'], row['og_country'], week))    
+
+            # Use tournament key in popup_info to find last accepted player
+            last_accepted = last_player[last_player['tournament_key'] == popup_info['tournament_key'].iloc[0]]
+            # if dataframe is empty, there were byes so empty spots!
+            if last_accepted.empty:
+                last_accepted_name = "N/A (Byes present)"
+            else:
+                last_accepted_name = last_accepted['player_name'].iloc[0]
+                last_accepted_name = f"{last_accepted['player_name'].iloc[0]} : {last_accepted['rank_type'].iloc[0]} {last_accepted['rank_value'].iloc[0]}"
+            # Detailed info (click)
+            popup_html = f"""
+            <b>{row['city']}, {row['country']}</b><br><br>
+            Qualifying Size: {popup_info['qualysize'].iloc[0]} <br>
+            Byes: {popup_info['qualybyes'].iloc[0]}<br>
+            Last Accepted Player: {f'{last_accepted_name}'}
+            """
+
+            folium.Marker(
+                [row['latitude'], row['longitude']],
+                tooltip=folium.Tooltip(tooltip_html, sticky=True),
+                popup=folium.Popup(popup_html, max_width=300)
+            ).add_to(m)
 
     # Change title based on if they chose country or week
     if choice == "country":
