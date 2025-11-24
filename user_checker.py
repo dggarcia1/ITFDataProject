@@ -198,6 +198,11 @@ def run_user_check():
 
     combined_all = pd.concat([combined, bye_tournaments], ignore_index=True)
 
+    # make combined all and combined n have the same columns as before but no player_name column
+    combined_all = combined_all[['tournament_key', 'city', 'country', 'date_started', 'qualysize', 'qualybyes', 'rank_type', 'rank_value']]
+    combined_n = combined_n[['tournament_key', 'city', 'country', 'date_started', 'qualysize', 'qualybyes', 'rank_type', 'rank_value']]
+
+
     print(f"Ranking type: {rtype}, Ranking value: {rval}")
 
     print("\nTournaments you would have gotten into:")
