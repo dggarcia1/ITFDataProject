@@ -423,8 +423,7 @@ def itf_scraper(websites):
 if __name__ == "__main__":
     websites = [
 
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-054/",
-                "https://www.itftennis.com/en/tournament/m15-sharm-elsheikh/egy/2025/m-itf-egy-2025-024/"
+                "https://www.itftennis.com/en/tournament/m15-ribeirao-preto/bra/2025/m-itf-bra-2025-013/"
             
                 
                 ]
