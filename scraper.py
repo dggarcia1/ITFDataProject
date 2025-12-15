@@ -24,6 +24,7 @@ def extract_table_data(table):
     return pd.DataFrame(table_data)
 
 def get_player_ranking(player_data):
+    
     player_name = player_data['PLAYER']
     
     if player_data['ATP RANKING']:
@@ -233,7 +234,7 @@ def itf_scraper(websites):
 
 
         driver.get(website_al)
-
+        #time.sleep(20)
         tables = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list")))
         columns = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list__title-default")))
         column_names = [column_name.text for column_name in columns]
@@ -310,7 +311,7 @@ def itf_scraper(websites):
         last_direct_acc = da_df[da_df['ATP RANKING'].notna()].iloc[-1] if not da_df[da_df['ATP RANKING'].notna()].empty else None
 
         al_df = acceptance_summary[acceptance_summary['DESIGNATION'].str.contains(r'\(A\)', na=False)].copy()
-        last_alt_acc = al_df.iloc[-1] if not al_df.empty else [0]
+        last_alt_acc = al_df.iloc[-1] if not al_df.empty else pd.Series([0])
 
         
         df_to_players = acceptance_summary[acceptance_summary['PLAYER'] != '(Available Slot)'].reset_index(drop=True)
@@ -388,6 +389,7 @@ def itf_scraper(websites):
 
        # last_alts =  acceptance_summary[(acceptance_summary['DESIGNATION'] != '(WC)') & (acceptance_summary.isna().any(axis=1))]
        # num_last_alts = last_alts.shape[0]
+       
         if len(last_alt_acc) > 0 and last_alt_acc.iloc[0] != 0:
             print('Last on-site alternate (A) in:')
             alt = get_player_ranking(last_alt_acc)
@@ -420,7 +422,10 @@ def itf_scraper(websites):
 if __name__ == "__main__":
     websites = [
 
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-056/"
+                
+
+                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-057/",
+                "https://www.itftennis.com/en/tournament/m15-lima/per/2025/m-itf-per-2025-003/"
             
                 
                 ]
