@@ -424,9 +424,8 @@ if __name__ == "__main__":
 
                 
 
-                "https://www.itftennis.com/en/tournament/m15-antalya/tur/2025/m-itf-tur-2025-044/",
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2025/m-itf-tun-2025-058/",
-                "https://www.itftennis.com/en/tournament/m15-agadir/mar/2025/m-itf-mar-2025-004/"
+                "https://www.itftennis.com/en/tournament/m25-marrakech/mar/2026/m-itf-mar-2026-001/",
+                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2026/m-itf-tun-2026-009/"
             
                 
                 ]
