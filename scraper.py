@@ -424,8 +424,13 @@ if __name__ == "__main__":
 
                 
 
-                "https://www.itftennis.com/en/tournament/m25-marrakech/mar/2026/m-itf-mar-2026-001/",
-                "https://www.itftennis.com/en/tournament/m15-monastir/tun/2026/m-itf-tun-2026-009/"
+                "https://www.itftennis.com/en/tournament/m25-hazebrouck/fra/2026/m-itf-fra-2026-002/",
+                "https://www.itftennis.com/en/tournament/m25-antalya/tur/2026/m-itf-tur-2026-001/",
+                "https://www.itftennis.com/en/tournament/m25-winston-salem-nc/usa/2026/m-itf-usa-2026-010/",
+                "https://www.itftennis.com/en/tournament/m25-monastir/tun/2026/m-itf-tun-2026-001/",
+                "https://www.itftennis.com/en/tournament/m15-manacor/esp/2026/m-itf-esp-2026-001/",
+                "https://www.itftennis.com/en/tournament/m15-oslo/nor/2026/m-itf-nor-2026-001/",
+                "https://www.itftennis.com/en/tournament/m15-hurghada/egy/2026/m-itf-egy-2026-002/"
             
                 
                 ]
