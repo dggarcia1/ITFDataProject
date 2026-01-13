@@ -3,14 +3,61 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
+from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, NoSuchElementException
 import map_creation
-
-#from webdriver_manager.chrome import ChromeDriverManager
-
 import sqlite3
 import time
 import pandas as pd
+import sys
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def get_tournament_links_by_date(driver, desired_date, timeout=10):
+    wait = WebDriverWait(driver, timeout)
+    websites = []
+
+    wait.until(
+        EC.presence_of_element_located((By.CLASS_NAME, "whatson-table"))
+    )
+
+    rows = driver.find_elements(
+        By.CSS_SELECTOR, "tr.whatson-table__tournament"
+    )
+
+    for row in rows:
+        try:
+            date_text = row.find_element(
+                By.CSS_SELECTOR, "td.date span.date"
+            ).text.strip()
+
+            if desired_date in date_text:
+                href = row.find_element(
+                    By.CSS_SELECTOR, "td.name a"
+                ).get_attribute("href")
+
+                if href.startswith("/"):
+                    href = "https://www.itftennis.com" + href
+
+                websites.append(href)
+
+        except (StaleElementReferenceException, NoSuchElementException):
+            continue
+
+    return websites
+
+def tournament_exists(conn, tournament_key):
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT 1 FROM tTournaments WHERE tournament_key = ? LIMIT 1;",
+        (tournament_key,)
+    )
+    exists = cur.fetchone() is not None
+    cur.close()
+    return exists
+
+
 
 def extract_table_data(table):
     table_data = []
@@ -105,8 +152,7 @@ def get_or_create_location_id(conn, city, country, lat=None, lon=None):
 conn = sqlite3.connect('itf_tournaments.db')
 curs = conn.cursor()
 curs.execute("PRAGMA foreign_keys=ON;")
-
-def itf_scraper(websites):
+def itf_scraper(desired_date):
     path = 'chromedriver.exe'
     service = Service(executable_path=path)
     driver = webdriver.Chrome(service=service)
@@ -115,7 +161,29 @@ def itf_scraper(websites):
     conn = sqlite3.connect('itf_tournaments.db')
     curs = conn.cursor()
     curs.execute("PRAGMA foreign_keys=ON;")
+
+    #print("Enter tournament start date (e.g. '12 Jan'):")
+    #sys.stdout.flush()
+    #desired_date = sys.stdin.readline().strip()
+
+    driver.get("https://www.itftennis.com/en/tournament-calendar/mens-world-tennis-tour-calendar/")
     
+    websites = get_tournament_links_by_date(driver, desired_date)
+
+    filtered_websites = []
+
+    for website in websites:
+        tournament_key = website.rstrip("/").split("/")[-1]
+
+        if tournament_exists(conn, tournament_key):
+            print(f"⏭️ Skipping already-scraped tournament: {tournament_key}")
+            continue
+
+        filtered_websites.append(website)
+
+    websites = filtered_websites
+
+
     for website in websites:
         tourney_key = website.split('/')[-2]
 
@@ -126,12 +194,6 @@ def itf_scraper(websites):
         formatted_name = tournament_part.replace('-', ' ').title()
 
         driver.get(website)
-        #if counter == 0:
-        #    cookies = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
-        #    time.sleep(0.5)
-        #    cookies.click()
-        #    counter+=1
-
 
         qualy_size = int(driver.find_element(By.XPATH, "//*[contains(text(), 'Singles qualifying')]").text[-2:])
         driver.get(website_draw)
@@ -234,7 +296,7 @@ def itf_scraper(websites):
 
 
         driver.get(website_al)
-        #time.sleep(20)
+        #time.sleep(30)
         tables = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list")))
         columns = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list__title-default")))
         column_names = [column_name.text for column_name in columns]
@@ -419,19 +481,27 @@ def itf_scraper(websites):
 
 
 
-if __name__ == "__main__":
-    websites = [
+#if __name__ == "__main__":
+    #websites = [
 
                 
 
-                "https://www.itftennis.com/en/tournament/m25-hazebrouck/fra/2026/m-itf-fra-2026-002/",
-                "https://www.itftennis.com/en/tournament/m25-antalya/tur/2026/m-itf-tur-2026-001/",
-                "https://www.itftennis.com/en/tournament/m25-winston-salem-nc/usa/2026/m-itf-usa-2026-010/",
-                "https://www.itftennis.com/en/tournament/m25-monastir/tun/2026/m-itf-tun-2026-001/",
-                "https://www.itftennis.com/en/tournament/m15-manacor/esp/2026/m-itf-esp-2026-001/",
-                "https://www.itftennis.com/en/tournament/m15-oslo/nor/2026/m-itf-nor-2026-001/",
-                "https://www.itftennis.com/en/tournament/m15-hurghada/egy/2026/m-itf-egy-2026-002/"
+     #           "",
+     #           "https://www.itftennis.com/en/tournament/m25-antalya/tur/2026/m-itf-tur-2026-001/",
+     #           "https://www.itftennis.com/en/tournament/m25-winston-salem-nc/usa/2026/m-itf-usa-2026-010/",
+     #           "https://www.itftennis.com/en/tournament/m25-monastir/tun/2026/m-itf-tun-2026-001/",
+     #           "https://www.itftennis.com/en/tournament/m15-manacor/esp/2026/m-itf-esp-2026-001/",
+     #          "https://www.itftennis.com/en/tournament/m15-oslo/nor/2026/m-itf-nor-2026-001/",
+      #          "https://www.itftennis.com/en/tournament/m15-hurghada/egy/2026/m-itf-egy-2026-002/"
             
                 
-                ]
-    itf_scraper(websites)
+      #          ]
+ #   itf_scraper()
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python itf_scraper.py '12 Jan'")
+        sys.exit(1)
+
+    desired_date = sys.argv[1]
+    itf_scraper(desired_date)
