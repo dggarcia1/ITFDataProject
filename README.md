@@ -26,9 +26,9 @@ informed, data-based decisions on travel and tournament scheduling.
 
     .
     ├── itf_tournaments.db        # SQLite database
-    ├── map_creation.py          # Displays interactive map of tournaments on specified week or country
-    ├── scraper.py          # Main scraper used to append tournament and player data to database
-    ├── tournament.py          # Outputs all players from specified tournament with acceptance list data.
+    ├── map_creation.py           # Displays interactive map of tournaments on specified week or country
+    ├── scraper.py                # Main scraper used to append tournament and player data to database
+    ├── tournament.py             # Outputs all players from specified tournament with acceptance list data.
     ├── user_checker.py           # Compares user ranking with specified week, and outputs whether user would have been accepted.
     ├── README.md                 # Project documentation
 
@@ -88,16 +88,16 @@ Automatically open in your default browser
 
 This script scrapes ITF tournament data for a given start date and populates the SQLite database with tournament, player, and acceptance list information.
 
-Run from the command line with a tournament start date:
+Run from the command line with the tournament dates as seen on the ITF website:
 
 ```bash
-python scraper.py "12 Jan"
+python scraper.py "12 Jan to 18 Jan 2026"
 ```
 
 
 ## Usage: Tournament Player Lookup (`tournament.py`)
 
-This script allows you to query all players associated with a specific tournament using its unique tournament key.
+This script allows you to query all players in the qualifying draw for a specific tournament using its unique tournament key.
 
 Run the script:
 
@@ -108,7 +108,7 @@ python tournament.py
 
 ## Usage: Player Eligibility Checker (`user_checker.py`)
 
-This interactive script determines which tournaments a player could have been accepted based on their ranking and a selected tournament week.
+This  script determines which tournaments a player could have been accepted into based on their ranking and a selected tournament week.
 
 Run the script:
 
