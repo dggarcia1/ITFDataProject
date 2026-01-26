@@ -74,6 +74,8 @@ def clean_city_names_df(df):
     df['city'] = df['city'].replace('QIAN DAOHU', 'QIANDAOHU')
     df['city'] = df['city'].replace('VALE DO LOBO', 'VALE DE LOBO')
     df['city'] = df['city'].replace("BAGNOLES DE LORNE", "BAGNOLES DE L'ORNE")
+    df['city'] = df['city'].replace("BAGNOLES DE LORNE PLUSH", "BAGNOLES DE L'ORNE")
+
     df['city'] = df['city'].replace("CAP DAGDE", "CAP D'AGDE")
 
 
