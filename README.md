@@ -151,6 +151,9 @@ Rate limiting is enforced to respect geocoding service policies.
 
 **David Garcia Carrasco**
 
+Reach out with any inquiries, comments, or recommendations!
+davidggarcia121@gmail.com
+
 ------------------------------------------------------------------------
 
 ## Disclaimer
