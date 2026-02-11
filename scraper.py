@@ -480,24 +480,6 @@ def itf_scraper(desired_date):
     return print("Scraping complete")
 
 
-
-#if __name__ == "__main__":
-    #websites = [
-
-                
-
-     #           "",
-     #           "https://www.itftennis.com/en/tournament/m25-antalya/tur/2026/m-itf-tur-2026-001/",
-     #           "https://www.itftennis.com/en/tournament/m25-winston-salem-nc/usa/2026/m-itf-usa-2026-010/",
-     #           "https://www.itftennis.com/en/tournament/m25-monastir/tun/2026/m-itf-tun-2026-001/",
-     #           "https://www.itftennis.com/en/tournament/m15-manacor/esp/2026/m-itf-esp-2026-001/",
-     #          "https://www.itftennis.com/en/tournament/m15-oslo/nor/2026/m-itf-nor-2026-001/",
-      #          "https://www.itftennis.com/en/tournament/m15-hurghada/egy/2026/m-itf-egy-2026-002/"
-            
-                
-      #          ]
- #   itf_scraper()
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python itf_scraper.py '12 Jan'")
