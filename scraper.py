@@ -199,7 +199,7 @@ def itf_scraper(desired_date):
         driver.get(website_draw)
 
 
-        driver.execute_script("window.scrollBy(0, 600);")
+        driver.execute_script("window.scrollBy(0, 700);")
         time.sleep(0.8)
         for attempt in range(3):
             try:
