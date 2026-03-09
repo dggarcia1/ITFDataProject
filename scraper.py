@@ -9,7 +9,6 @@ import sqlite3
 import time
 import pandas as pd
 import sys
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -167,6 +166,9 @@ def itf_scraper(desired_date):
     #desired_date = sys.stdin.readline().strip()
 
     driver.get("https://www.itftennis.com/en/tournament-calendar/mens-world-tennis-tour-calendar/")
+    # Click accept cookies
+    cookies_click = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Consent']")))
+    cookies_click.click()
     
     websites = get_tournament_links_by_date(driver, desired_date)
 
