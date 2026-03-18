@@ -166,9 +166,10 @@ def itf_scraper(desired_date):
     #desired_date = sys.stdin.readline().strip()
 
     driver.get("https://www.itftennis.com/en/tournament-calendar/mens-world-tennis-tour-calendar/")
+
     # Click accept cookies
-    cookies_click = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Consent']")))
-    cookies_click.click()
+    #cookies_click = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@aria-label='Consent']")))
+    #cookies_click.click()
     
     websites = get_tournament_links_by_date(driver, desired_date)
 
