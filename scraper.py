@@ -370,7 +370,6 @@ def itf_scraper(desired_date):
                     temp_desg = players_in_qdraw.loc[players_in_qdraw['PLAYER'] == name, 'DESIGNATION'].iloc[0]
                     new_row = {'PLAYER': name, 'COUNTRY': temp_coun, 'PRIORITY': '1', 'DESIGNATION': temp_desg}
                     acceptance_summary.loc[len(acceptance_summary)] = new_row
-        #print(acceptance_summary)
 
         da_df = acceptance_summary[acceptance_summary['DESIGNATION'].str.contains('DA', na=False)].copy()
         last_direct_acc = da_df[da_df['ATP RANKING'].notna()].iloc[-1] if not da_df[da_df['ATP RANKING'].notna()].empty else None
