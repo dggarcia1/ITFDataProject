@@ -314,42 +314,72 @@ def itf_scraper(desired_date):
 
         dataframes = []
 
-        if len(tables)==4:
-            # There's no Junior reserved
-            for i in range(3): 
-                table = tables[i]
-                df = extract_table_data(table)
-                dataframes.append(df) 
-        if len(tables)==5:
-            # There IS Junior reserved
-            for i in range(1, 4): 
-                table = tables[i]
-                df = extract_table_data(table)
+#        if len(tables)==4:
+#            # There's no Junior reserved
+#            for i in range(3): 
+#                table = tables[i]
+#                df = extract_table_data(table)
+#                dataframes.append(df) 
+#        if len(tables)==5:
+#           # There IS Junior reserved
+#            for i in range(1, 4): 
+#                table = tables[i]
+#                df = extract_table_data(table)
+#                dataframes.append(df)
+        for table in tables[:-1]:
+            df = extract_table_data(table)
+            if not df.empty:
                 dataframes.append(df)
 
-        if dataframes:
-            cleaned_dfs = []
-            for d_f in dataframes:
+        cleaned_dfs = []
+
+        for d_f in dataframes:
+            try:
                 d_f = d_f.drop(d_f.columns[[0, -1]], axis=1)
                 d_f = d_f.drop(d_f.index[0]).reset_index(drop=True)
                 d_f.columns = final_columns
                 d_f['COUNTRY'] = d_f['PLAYER'].apply(lambda x: x[:3] if '\n' in x else 'N/A')
                 d_f['PLAYER'] = d_f['PLAYER'].apply(lambda x: x[3:] if '\n' in x else x).str.replace('\n', '')
                 cleaned_dfs.append(d_f)
-                
-            if cleaned_dfs:
-                main_draw_al = cleaned_dfs[0]
-                qualy_al = cleaned_dfs[1]
-                alternate_al = cleaned_dfs[2]
-            else:
-                print("Error: No cleaned dataframes were found.")
+            except:
+                continue
+
+
+        if cleaned_dfs[0].shape[0] > 3:
+            main_draw_al = cleaned_dfs[0] if len(cleaned_dfs) > 0 else pd.DataFrame()
+            qualy_al = cleaned_dfs[1] if len(cleaned_dfs) > 1 else pd.DataFrame()
+            alternate_al = cleaned_dfs[2] if len(cleaned_dfs) > 2 else pd.DataFrame()
         else:
-            print("Error: No tables were found or extracted.")
+            main_draw_al = cleaned_dfs[1] if len(cleaned_dfs) > 0 else pd.DataFrame()
+            qualy_al = cleaned_dfs[2] if len(cleaned_dfs) > 1 else pd.DataFrame()
+            alternate_al = cleaned_dfs[3] if len(cleaned_dfs) > 2 else pd.DataFrame()
+            
+#        if dataframes:
+#            cleaned_dfs = []
+#            for d_f in dataframes:
+#                d_f = d_f.drop(d_f.columns[[0, -1]], axis=1)
+#                d_f = d_f.drop(d_f.index[0]).reset_index(drop=True)
+#                d_f.columns = final_columns
+#                d_f['COUNTRY'] = d_f['PLAYER'].apply(lambda x: x[:3] if '\n' in x else 'N/A')
+#                d_f['PLAYER'] = d_f['PLAYER'].apply(lambda x: x[3:] if '\n' in x else x).str.replace('\n', '')
+#                cleaned_dfs.append(d_f)
+                
+#            if cleaned_dfs:
+#                main_draw_al = cleaned_dfs[0]
+#                qualy_al = cleaned_dfs[1]
+#                alternate_al = cleaned_dfs[2]
+#            else:
+#                print("Error: No cleaned dataframes were found.")
+#        else:
+#            print("Error: No tables were found or extracted.")
 
 
 
-        #combined_al = pd.concat([main_draw_al, qualy_al, alternate_al], ignore_index=True)
-        combined_al_no_m = pd.concat([qualy_al, alternate_al])
+#        combined_al_no_m = pd.concat([qualy_al, alternate_al])
+        if not alternate_al.empty:
+            combined_al_no_m = pd.concat([qualy_al, alternate_al])
+        else:
+            combined_al_no_m = qualy_al.copy()
 
         players_in_qdraw = pd.DataFrame(list(zip(full_names, designation_list, country_names)))
         players_in_qdraw.columns = ['PLAYER', 'DESIGNATION', 'COUNTRY']
@@ -403,12 +433,12 @@ def itf_scraper(desired_date):
         
         matching_indices = combined_al_no_m[combined_al_no_m['PLAYER'].isin(acceptance_summary['PLAYER'])].index
         adjusted = matching_indices+1
-
+        
         if len(adjusted) < len(df_to_players):
             adjusted = list(adjusted) + [0] * (len(df_to_players) - len(adjusted))
 
         df_to_players['acceptancelist_number'] = adjusted
-        
+
         status = []
         previous_value = -1  
         current_status = 'Qualifying'
@@ -445,7 +475,12 @@ def itf_scraper(desired_date):
         print(f"{dir[0]} ({last_direct_acc['COUNTRY']}) - {dir[1]}")
 
         player_name = last_direct_acc['PLAYER']
-        alternate_num = alternate_al.loc[alternate_al['PLAYER'] == player_name].index
+#        alternate_num = alternate_al.loc[alternate_al['PLAYER'] == player_name].index
+        if not alternate_al.empty:
+            alternate_num = alternate_al.loc[alternate_al['PLAYER'] == player_name].index
+        else:
+            alternate_num = pd.Index([])
+
         if alternate_num.empty:
             print(f'No alternates played. Alternate list was length {alternate_al.shape[0]}\n')
         else:
