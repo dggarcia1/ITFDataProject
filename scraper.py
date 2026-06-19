@@ -152,9 +152,10 @@ conn = sqlite3.connect('itf_tournaments.db')
 curs = conn.cursor()
 curs.execute("PRAGMA foreign_keys=ON;")
 def itf_scraper(desired_date):
-    path = 'chromedriver.exe'
-    service = Service(executable_path=path)
-    driver = webdriver.Chrome(service=service)
+    #path = 'chromedriver.exe'
+    #service = Service(executable_path=path)
+    #driver = webdriver.Chrome(service=service)
+    driver = webdriver.Chrome()
     wait = WebDriverWait(driver, 30)
     counter = 0
     conn = sqlite3.connect('itf_tournaments.db')
