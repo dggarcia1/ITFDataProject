@@ -187,7 +187,6 @@ def itf_scraper(desired_date):
 
     websites = filtered_websites
 
-
     for website in websites:
         tourney_key = website.split('/')[-2]
 
@@ -199,8 +198,8 @@ def itf_scraper(desired_date):
 
         driver.get(website)
 
-        qualy_size = int(driver.find_element(By.XPATH, "//*[contains(text(), 'Singles qualifying')]").text[-2:])
-        #qualy_size = int(input("Qualy size:"))
+        #qualy_size = int(driver.find_element(By.XPATH, "//*[contains(text(), 'Singles qualifying')]").text[-2:])
+        qualy_size = int(input("Qualy size:"))
         driver.get(website_draw)
 
 
