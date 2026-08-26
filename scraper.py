@@ -300,7 +300,7 @@ def itf_scraper(desired_date):
 
 
         driver.get(website_al)
-        #time.sleep(30)
+        time.sleep(30)
         tables = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list")))
         columns = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "acceptance-list__title-default")))
         column_names = [column_name.text for column_name in columns]
