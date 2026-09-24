@@ -3,7 +3,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, NoSuchElementException, TimeoutException
 import map_creation
 import sqlite3
 import time
@@ -203,25 +203,53 @@ def itf_scraper(desired_date):
         driver.get(website_draw)
 
 
-        driver.execute_script("window.scrollBy(0, 700);")
+        driver.execute_script("window.scrollBy(0, 500);")
         time.sleep(0.8)
+        dropdown_control_css = "#drawsheet-dropdowns div.dropdown div[class*='-control']"
         for attempt in range(3):
             try:
-                dropdown = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[contains(@class, 'css-j1esxd-singleValue')])[2]")))
+                # Find the dropdown that holds Main / Qualifying (not the other one)
+                dropdown = wait.until(
+                    lambda d: next(
+                        (
+                            el for el in d.find_elements(By.CSS_SELECTOR, dropdown_control_css)
+                            if el.is_displayed()
+                            and any(k in (el.get_attribute("textContent") or "").lower()
+                                    for k in ("main", "qualifying"))
+                        ),
+                        None,
+                    )
+                )
+                wait.until(EC.element_to_be_clickable(dropdown))
                 dropdown.click()
+
+                # Confirm the menu actually opened before moving on
+                wait.until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, "div[class*='-option']")
+                    )
+                )
                 break  # Success, exit loop
-            except (StaleElementReferenceException, ElementClickInterceptedException):
+            except (StaleElementReferenceException,
+                    ElementClickInterceptedException,
+                    TimeoutException):
                 print("Dropdown not clickable or stale, refreshing and retrying...")
                 driver.get(website_draw)
                 time.sleep(2)
                 driver.execute_script("window.scrollBy(0, 600);")
                 time.sleep(0.8)
         else:
-            print("Failed to click dropdown after retrying.")
-        #dropdown = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[contains(@class, 'css-j1esxd-singleValue')])[2]")))
-        #dropdown.click()
-        qualifying_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Qualifying Draw']")))
+            raise RuntimeError("Failed to open the Main/Qualifying dropdown after 3 attempts.")
+
+        qualifying_option = wait.until(
+            EC.element_to_be_clickable((
+                By.XPATH,
+                "//div[contains(@class, '-option') and contains(normalize-space(.), 'Qualifying')]"
+            ))
+        )
         qualifying_option.click()
+       
+
 
         time.sleep(0.5)
                 
@@ -385,15 +413,18 @@ def itf_scraper(desired_date):
         players_in_qdraw = pd.DataFrame(list(zip(full_names, designation_list, country_names)))
         players_in_qdraw.columns = ['PLAYER', 'DESIGNATION', 'COUNTRY']
 
-        acceptance_summary = combined_al_no_m.merge(players_in_qdraw, on='PLAYER', how='inner').drop(columns=['COUNTRY_y']).rename(columns={'COUNTRY_x':'COUNTRY'})
-        acceptance_summary['WTN'] = acceptance_summary['WTN'].astype(str)
-        acceptance_summary['ATP RANKING'] = acceptance_summary['ATP RANKING'].astype(str)
-        acceptance_summary['ITF RANKING'] = acceptance_summary['ITF RANKING'].astype(str)
-        acceptance_summary['NATIONAL RANKING'] = acceptance_summary['NATIONAL RANKING'].astype(str)
+        acceptance_summary = combined_al_no_m.merge(players_in_qdraw, on='PLAYER', how='inner').drop(columns=['COUNTRY_y']).rename(columns={'COUNTRY_x': 'COUNTRY'})
 
+        acceptance_summary = acceptance_summary.drop(columns=['Junior Ranking'], errors='ignore')
 
+        acceptance_summary = acceptance_summary.rename(columns={
+            'ATP Ranking': 'ATP RANKING',
+            'Ranking': 'ITF RANKING',
+            'National Ranking': 'NATIONAL RANKING',
+        })
 
-
+        for col in ['WTN', 'ATP RANKING', 'ITF RANKING', 'NATIONAL RANKING']:
+            acceptance_summary[col] = acceptance_summary[col].astype(str)
         if len(acceptance_summary) != len(players_in_qdraw):
             for name in players_in_qdraw['PLAYER']:
                 if name not in list(acceptance_summary['PLAYER']):
