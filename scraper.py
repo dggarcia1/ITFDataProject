@@ -417,10 +417,14 @@ def itf_scraper(desired_date):
 
         acceptance_summary = acceptance_summary.drop(columns=['Junior Ranking'], errors='ignore')
 
+        #acceptance_summary = acceptance_summary.rename(columns={
+        #    'ATP Ranking': 'ATP RANKING',
+        #    'Ranking': 'ITF RANKING',
+        #    'National Ranking': 'NATIONAL RANKING',
+        #})
+
         acceptance_summary = acceptance_summary.rename(columns={
-            'ATP Ranking': 'ATP RANKING',
-            'Ranking': 'ITF RANKING',
-            'National Ranking': 'NATIONAL RANKING',
+        'RANKING': 'ITF RANKING',
         })
 
         for col in ['WTN', 'ATP RANKING', 'ITF RANKING', 'NATIONAL RANKING']:
